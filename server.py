@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import pandas as pd
 import numpy as np
 import json
 
-# Load the dataset from the file in the current Render project directory
+# Load data.json which must be in the same directory
 with open("data.json", "r") as f:
     data = json.load(f)
 
@@ -27,7 +28,6 @@ def answer_query(q: str):
     answer = "Question not supported."
 
     try:
-        # Example: match supported questions
         if "total sales of table in beierburgh" in q_lower:
             total = df[(df["product"] == "Table") & (df["city"] == "Beierburgh")]["sales"].sum()
             answer = int(total)
@@ -45,13 +45,13 @@ def answer_query(q: str):
             if not result.empty:
                 answer = result.loc[result["sales"].idxmax()]["date"]
             else:
-                answer = "No record found."
+                answer = "No record found"
 
     except Exception as e:
         answer = f"Error: {str(e)}"
 
-    return Response(
-        content=json.dumps({"answer": answer}),
-        media_type="application/json",
+    return JSONResponse(
+        status_code=200,
+        content={"answer": answer},
         headers={"X-Email": "23f3000059@ds.study.iitm.ac.in"}
     )
