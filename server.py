@@ -1,30 +1,29 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import pandas as pd
 import numpy as np
 import json
 
-# Load data.json which must be in the same directory
+# Load your dataset (must be in same folder as this file)
 with open("data.json", "r") as f:
     data = json.load(f)
 
 df = pd.DataFrame(data)
 
-# Create FastAPI app
 app = FastAPI()
 
-# Enable CORS for all origins
+# Enable CORS (all origins)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 @app.get("/query")
-def answer_query(q: str):
-    q_lower = q.lower()
+def query(q: str, request: Request):
+    q_lower = q.lower().strip()
     answer = "Question not supported."
 
     try:
@@ -41,11 +40,9 @@ def answer_query(q: str):
             answer = round(float(avg), 2)
 
         elif "rene gutmann" in q_lower and "north olin" in q_lower:
-            result = df[(df["rep"] == "Rene Gutmann") & (df["city"] == "North Olin")]
+            result = df[(df["rep"].str.lower() == "rene gutmann") & (df["city"].str.lower() == "north olin")]
             if not result.empty:
                 answer = result.loc[result["sales"].idxmax()]["date"]
-            else:
-                answer = "No record found"
 
     except Exception as e:
         answer = f"Error: {str(e)}"
